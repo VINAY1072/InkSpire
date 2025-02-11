@@ -1,15 +1,16 @@
 package com.example.inkspire.presentation.screens
 
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -39,11 +40,14 @@ fun CreateNoteScreen(
         containerColor = InkSpireTheme.colors.onPrimary,
         floatingActionButton = {
             FloatingActionButton(
+                modifier = Modifier.imePadding(),
                 onClick = {
-                    onAction(AddNotesAction.AddNote)
+                    if (uiState.shouldAllowSave) {
+                        onAction(AddNotesAction.AddNote)
+                    }
                 },
                 shape = FloatingActionButtonDefaults.largeShape,
-                containerColor = InkSpireTheme.colors.primary
+                containerColor = if (uiState.shouldAllowSave) InkSpireTheme.colors.primary else InkSpireTheme.colors.divider
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.save),
@@ -71,7 +75,13 @@ fun CreateNoteScreen(
                     },
                     textStyle = InkSpireTheme.typography.titleLarge
                 )
-                Spacer(modifier = Modifier.height(InkSpireTheme.dimens.space16))
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(InkSpireTheme.dimens.space16)
+                        .fillMaxWidth(),
+                    thickness = InkSpireTheme.dimens.space1,
+                    color = InkSpireTheme.colors.divider
+                )
             }
 
             item {

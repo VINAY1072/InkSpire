@@ -28,6 +28,8 @@ class CreateViewModel @AssistedInject constructor(
     private val _uiState = MutableStateFlow(_initCreateUiState)
 
     private var createdTime: Long = 0L
+    private var initialTitle: String = ""
+    private var initialDescription: String = ""
 
     val uiState = _uiState.onStart {
         fetchNoteById(id)
@@ -49,6 +51,8 @@ class CreateViewModel @AssistedInject constructor(
                         )
                     }
                     createdTime = n.createdTime
+                    initialTitle = n.title
+                    initialDescription = n.description
                 }
             }
         }
@@ -77,14 +81,38 @@ class CreateViewModel @AssistedInject constructor(
 
             is AddNotesAction.Description -> {
                 _uiState.update {
-                    it.copy(description = action.text)
+                    val isEditingExistingNote = id != null && id != -1
+                    val hasContent = action.text.isNotBlank() || _uiState.value.title.isNotBlank()
+                    val isModified = if (isEditingExistingNote) {
+                        action.text != initialDescription || _uiState.value.title != initialTitle
+                    } else {
+                        true
+                    }
+
+                    it.copy(
+                        description = action.text,
+                        shouldAllowSave = hasContent && isModified
+                    )
                 }
+
             }
 
             is AddNotesAction.Title -> {
                 _uiState.update {
-                    it.copy(title = action.text)
+                    val isEditingExistingNote = id != null && id != -1
+                    val hasContent = action.text.isNotBlank() || _uiState.value.description.isNotBlank()
+                    val isModified = if (isEditingExistingNote) {
+                        action.text != initialTitle || _uiState.value.description != initialDescription
+                    } else {
+                        true
+                    }
+
+                    it.copy(
+                        title = action.text,
+                        shouldAllowSave = hasContent && isModified
+                    )
                 }
+
             }
         }
     }
