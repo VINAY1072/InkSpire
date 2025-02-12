@@ -14,10 +14,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.navigation.NavController
 import com.example.inkspire.R
 import com.example.inkspire.domain.models.AddNotesAction
 import com.example.inkspire.domain.models.CreateUiState
@@ -26,16 +24,9 @@ import com.example.inkspire.ui.theme.InkSpireTheme
 
 @Composable
 fun CreateNoteScreen(
-    navController: NavController,
     uiState: CreateUiState,
     onAction: (AddNotesAction) -> Unit
 ) {
-    LaunchedEffect(uiState.shouldGoBack) {
-        if (uiState.shouldGoBack) {
-            navController.popBackStack()
-        }
-    }
-
     Scaffold(
         containerColor = InkSpireTheme.colors.onPrimary,
         floatingActionButton = {

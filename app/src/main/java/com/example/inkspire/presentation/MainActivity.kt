@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -19,9 +20,13 @@ import com.example.inkspire.ui.theme.InkSpireTheme
 import com.example.inkspire.viewmodel.CreateViewModel
 import com.example.inkspire.viewmodel.HomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @OptIn(FlowPreview::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -39,10 +44,15 @@ class MainActivity : ComponentActivity() {
                         val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
                         HomeScreenComposable(
-                            navController = navController,
                             uiState = uiState,
                             onAction = homeViewModel::onAction
                         )
+
+                        LaunchedEffect(Unit) {
+                            homeViewModel.openCreateScreen.debounce(400L).collectLatest { id->
+                                navController.navigate(Screen.CREATE + "/${id}")
+                            }
+                        }
                     }
 
                     composable(
@@ -60,10 +70,17 @@ class MainActivity : ComponentActivity() {
                         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
                         CreateNoteScreen(
-                            navController = navController,
                             uiState = uiState,
                             onAction = viewModel::onAction
                         )
+
+                        LaunchedEffect(Unit) {
+                            viewModel.shouldGoBack.debounce(300L).collectLatest { go->
+                                if (go) {
+                                    navController.popBackStack()
+                                }
+                            }
+                        }
                     }
                 }
             }

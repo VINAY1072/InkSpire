@@ -7,6 +7,7 @@ import com.example.inkspire.domain.models.HomeUiState
 import com.example.inkspire.domain.models.SortOrder
 import com.example.inkspire.domain.usecase.NotesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
@@ -31,6 +32,14 @@ class HomeViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = _initUiStateValue
     )
+
+    var openCreateScreen = MutableSharedFlow<Int>()
+
+    private fun openCreateScreen(id: Int) {
+        viewModelScope.launch {
+            openCreateScreen.emit(id)
+        }
+    }
 
     private fun fetchNotes(order: SortOrder) {
         viewModelScope.launch {
@@ -60,10 +69,8 @@ class HomeViewModel @Inject constructor(
                 }
             }
 
-            is HomeAction.SetBottomSheetStatus -> {
-                _uiState.update {
-                    it.copy(showBottomSheet = action.status)
-                }
+            is HomeAction.CreateNote -> {
+                openCreateScreen(action.id)
             }
 
             is HomeAction.SortData -> {

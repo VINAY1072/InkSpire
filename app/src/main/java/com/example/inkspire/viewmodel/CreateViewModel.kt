@@ -10,6 +10,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
@@ -27,6 +28,8 @@ class CreateViewModel @AssistedInject constructor(
 
     private val _uiState = MutableStateFlow(_initCreateUiState)
 
+    var shouldGoBack = MutableSharedFlow<Boolean>()
+
     private var createdTime: Long = 0L
     private var initialTitle: String = ""
     private var initialDescription: String = ""
@@ -38,6 +41,12 @@ class CreateViewModel @AssistedInject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = _initCreateUiState
     )
+
+    private fun shouldGoBack() {
+        viewModelScope.launch {
+            shouldGoBack.emit(true)
+        }
+    }
 
     private fun fetchNoteById(id: Int?) {
         viewModelScope.launch {
@@ -74,9 +83,7 @@ class CreateViewModel @AssistedInject constructor(
                 viewModelScope.launch {
                     notesUseCase.insertUseCase(note)
                 }
-                _uiState.update {
-                    it.copy(shouldGoBack = true)
-                }
+                shouldGoBack()
             }
 
             is AddNotesAction.Description -> {
