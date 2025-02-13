@@ -7,6 +7,9 @@ import java.util.Locale
 
 class CommonUtils() {
     companion object {
+
+        const val CREATE_NOTE = "create_note"
+
         fun formatTimestamp(timestamp: Long): String {
             val calendar = Calendar.getInstance()
 

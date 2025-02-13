@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,7 +28,7 @@ import kotlinx.coroutines.flow.debounce
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @OptIn(FlowPreview::class)
+    @OptIn(FlowPreview::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -34,50 +36,54 @@ class MainActivity : ComponentActivity() {
             InkSpireTheme {
                 val navController = rememberNavController()
 
-                NavHost(
-                    navController = navController,
-                    startDestination = Screen.Home.route
-                ) {
-                    composable(route = Screen.Home.route) {
-                        val homeViewModel: HomeViewModel = hiltViewModel()
+                SharedTransitionLayout {
+                    NavHost(
+                        navController = navController,
+                        startDestination = Screen.Home.route
+                    ) {
+                        composable(route = Screen.Home.route) {
+                            val homeViewModel: HomeViewModel = hiltViewModel()
 
-                        val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+                            val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
-                        HomeScreenComposable(
-                            uiState = uiState,
-                            onAction = homeViewModel::onAction
-                        )
+                            HomeScreenComposable(
+                                animatedScope = this,
+                                uiState = uiState,
+                                onAction = homeViewModel::onAction
+                            )
 
-                        LaunchedEffect(Unit) {
-                            homeViewModel.openCreateScreen.debounce(400L).collectLatest { id->
-                                navController.navigate(Screen.CREATE + "/${id}")
+                            LaunchedEffect(Unit) {
+                                homeViewModel.openCreateScreen.debounce(400L).collectLatest { id ->
+                                    navController.navigate(Screen.CREATE + "/${id}")
+                                }
                             }
                         }
-                    }
 
-                    composable(
-                        route = Screen.Create.route,
-                        arguments = listOf(navArgument("id") { type = IntType })
-                    ) { entry ->
+                        composable(
+                            route = Screen.Create.route,
+                            arguments = listOf(navArgument("id") { type = IntType })
+                        ) { entry ->
 
-                        val viewModel: CreateViewModel =
-                            hiltViewModel<CreateViewModel, CreateViewModel.CreateViewModelFactory> { factory ->
-                                factory.create(
-                                    entry.arguments?.getInt("id")
-                                )
-                            }
+                            val id = entry.arguments?.getInt("id")
 
-                        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                            val viewModel: CreateViewModel =
+                                hiltViewModel<CreateViewModel, CreateViewModel.CreateViewModelFactory> { factory ->
+                                    factory.create(id)
+                                }
 
-                        CreateNoteScreen(
-                            uiState = uiState,
-                            onAction = viewModel::onAction
-                        )
+                            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-                        LaunchedEffect(Unit) {
-                            viewModel.shouldGoBack.debounce(300L).collectLatest { go->
-                                if (go) {
-                                    navController.popBackStack()
+                            CreateNoteScreen(
+                                animatedScope = this,
+                                uiState = uiState.copy(id = id),
+                                onAction = viewModel::onAction
+                            )
+
+                            LaunchedEffect(Unit) {
+                                viewModel.shouldGoBack.debounce(300L).collectLatest { go ->
+                                    if (go) {
+                                        navController.popBackStack()
+                                    }
                                 }
                             }
                         }

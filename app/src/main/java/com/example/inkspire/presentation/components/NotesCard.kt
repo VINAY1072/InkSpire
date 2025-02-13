@@ -25,6 +25,8 @@ import com.example.inkspire.ui.theme.InkSpireTheme
 
 @Composable
 fun NotesCard(
+    modifier: Modifier,
+    contentModifier: Modifier,
     note: Note,
     onAction: (HomeAction) -> Unit
 ) {
@@ -45,14 +47,14 @@ fun NotesCard(
                     note.title,
                     style = InkSpireTheme.typography.titleSmall.copy(fontWeight = Bold),
                     color = InkSpireTheme.colors.secondary,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(InkSpireTheme.dimens.space4))
                 Text(
                     note.description.replace("\n", " "),
                     style = InkSpireTheme.typography.bodyMedium,
                     color = InkSpireTheme.colors.description,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = contentModifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(

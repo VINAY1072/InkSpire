@@ -1,5 +1,8 @@
 package com.example.inkspire.presentation.screens
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,13 +28,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import com.example.inkspire.domain.models.HomeAction
 import com.example.inkspire.domain.models.HomeUiState
+import com.example.inkspire.domain.util.CommonUtils.Companion.CREATE_NOTE
 import com.example.inkspire.presentation.components.MenuDialog
 import com.example.inkspire.presentation.components.NotesCard
 import com.example.inkspire.ui.theme.InkSpireTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun HomeScreenComposable(
+fun SharedTransitionScope.HomeScreenComposable(
+    animatedScope: AnimatedVisibilityScope,
     uiState: HomeUiState,
     onAction: (HomeAction) -> Unit
 ) {
@@ -69,7 +74,13 @@ fun HomeScreenComposable(
                     onAction(HomeAction.CreateNote(-1))
                 },
                 shape = FloatingActionButtonDefaults.largeShape,
-                containerColor = InkSpireTheme.colors.primary
+                containerColor = InkSpireTheme.colors.primary,
+                modifier = Modifier.sharedBounds(
+                    sharedContentState = rememberSharedContentState(
+                        key = CREATE_NOTE
+                    ),
+                    animatedVisibilityScope = animatedScope
+                )
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Add,
@@ -93,7 +104,19 @@ fun HomeScreenComposable(
                     items(notes) { note ->
                         NotesCard(
                             note = note,
-                            onAction = onAction
+                            onAction = onAction,
+                            modifier = Modifier.sharedElement(
+                                state = rememberSharedContentState(
+                                    key = "${note.id}_title"
+                                ),
+                                animatedVisibilityScope = animatedScope
+                            ),
+                            contentModifier = Modifier.sharedElement(
+                                state = rememberSharedContentState(
+                                    key = "${note.id}_description"
+                                ),
+                                animatedVisibilityScope = animatedScope
+                            )
                         )
                     }
                 }

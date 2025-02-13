@@ -1,5 +1,8 @@
 package com.example.inkspire.presentation.screens
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,15 +22,24 @@ import androidx.compose.ui.res.painterResource
 import com.example.inkspire.R
 import com.example.inkspire.domain.models.AddNotesAction
 import com.example.inkspire.domain.models.CreateUiState
+import com.example.inkspire.domain.util.CommonUtils.Companion.CREATE_NOTE
 import com.example.inkspire.presentation.components.TransparentHintTextField
 import com.example.inkspire.ui.theme.InkSpireTheme
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun CreateNoteScreen(
+fun SharedTransitionScope.CreateNoteScreen(
+    animatedScope: AnimatedVisibilityScope,
     uiState: CreateUiState,
     onAction: (AddNotesAction) -> Unit
 ) {
     Scaffold(
+        modifier = Modifier.sharedBounds(
+            sharedContentState = rememberSharedContentState(
+                key = CREATE_NOTE
+            ),
+            animatedVisibilityScope = animatedScope
+        ),
         containerColor = InkSpireTheme.colors.onPrimary,
         floatingActionButton = {
             FloatingActionButton(
@@ -64,7 +76,13 @@ fun CreateNoteScreen(
                     onValueChange = {
                         onAction(AddNotesAction.Title(it))
                     },
-                    textStyle = InkSpireTheme.typography.titleLarge
+                    textStyle = InkSpireTheme.typography.titleLarge,
+                    modifier = Modifier.sharedElement(
+                        state = rememberSharedContentState(
+                            key = "${uiState.id}_title"
+                        ),
+                        animatedVisibilityScope = animatedScope
+                    )
                 )
                 HorizontalDivider(
                     modifier = Modifier
@@ -84,7 +102,14 @@ fun CreateNoteScreen(
                         onAction(AddNotesAction.Description(it))
                     },
                     textStyle = InkSpireTheme.typography.bodyLarge,
-                    modifier = Modifier.fillMaxHeight()
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .sharedElement(
+                        state = rememberSharedContentState(
+                            key = "${uiState.id}_description"
+                        ),
+                        animatedVisibilityScope = animatedScope
+                    )
                 )
             }
         }
